@@ -153,7 +153,8 @@ public:
     virtual void setup()
     {
 		setDescription("CNV detection from targeted resequencing data using non-matched control samples.");
-        addInfileList("in", "Input TSV files (one per sample) containing coverage data (chr, start, end, avg_depth).", false, true);
+        addInfileList("in", "Input TSV files (one per sample) containing coverage data (chr, start, end, avg_depth).", true, true);
+        addInfile("in_file", "Input file containing list of TSV files (one per sample) containing coverage data (chr, start, end, avg_depth).", true, true);
         addOutfile("out", "Output TSV file containing the detected CNVs.", false, true);
 		//optional
 		addInfileList("in_noref", "Input TSV files like 'in' but not used as reference (e.g. tumor samples).", true, true);
@@ -547,6 +548,17 @@ public:
 		QString debug = getString("debug");
 		QString seg = getString("seg");
         QStringList in = getInfileList("in");
+        if (in.empty())
+        {
+            QFile in_file(getInfile("in_file"));
+            in_file.open(QIODevice::ReadOnly);
+            while(!in_file.atEnd())
+            {
+                in.append(in_file.readLine().trimmed());
+            }
+
+            in_file.close();
+        }
 		QStringList in_noref = getInfileList("in_noref");
 		QString out = getOutfile("out");
         if (!out.endsWith(".tsv")) THROW(ArgumentException, "Output file name has to end with '.tsv'!");
